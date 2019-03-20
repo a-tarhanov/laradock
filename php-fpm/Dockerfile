@@ -650,6 +650,26 @@ RUN if [ ${INSTALL_MSMTP} = true ]; then \
 ;fi
 
 ###########################################################################
+# WKHTMLTOPDF:
+###########################################################################
+
+USER root
+
+ARG INSTALL_WKHTMLTOPDF=false
+
+RUN if [ ${INSTALL_WKHTMLTOPDF} = true ]; then \
+    apt-get -yqq update && \
+    apt-get -yqq install wkhtmltopdf && \
+    apt-get -yqq install wget && \
+    cd ~ && \
+    wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz && \
+    tar -xf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz && \
+    mv wkhtmltox/bin/* /usr/bin && \
+    rm wkhtmltox-0.12.4_linux-generic-amd64.tar.xz && \
+    rm -r wkhtmltox \
+;fi
+
+###########################################################################
 # Check PHP version:
 ###########################################################################
 
