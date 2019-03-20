@@ -323,6 +323,15 @@ RUN if [ ${INSTALL_MEMCACHED} = true ]; then \
 ;fi
 
 ###########################################################################
+# PHP Memcache:
+###########################################################################
+
+RUN if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+  pecl install memcache -y \
+  && docker-php-ext-enable memcache \
+;fi
+
+###########################################################################
 # Exif:
 ###########################################################################
 
@@ -628,6 +637,19 @@ RUN if [ ${INSTALL_MYSQL_CLIENT} = true ]; then \
 ;fi
 
 ###########################################################################
+# MSMTP:
+###########################################################################
+
+USER root
+
+ARG INSTALL_MSMTP=false
+
+RUN if [ ${INSTALL_MSMTP} = true ]; then \
+    apt-get -y update && \
+    apt-get -y install msmtp \
+;fi
+
+###########################################################################
 # Check PHP version:
 ###########################################################################
 
@@ -639,7 +661,7 @@ RUN set -xe; php -v | head -n 1 | grep -q "PHP ${LARADOCK_PHP_VERSION}."
 #--------------------------------------------------------------------------
 #
 
-COPY ./laravel.ini /usr/local/etc/php/conf.d
+COPY ./user.ini /usr/local/etc/php/conf.d
 COPY ./xlaravel.pool.conf /usr/local/etc/php-fpm.d/
 
 USER root

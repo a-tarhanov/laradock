@@ -1,0 +1,54 @@
+server {
+
+    listen 80;
+    listen [::]:80;
+
+    # For https
+    # listen 443 ssl;
+    # listen [::]:443 ssl ipv6only=on;
+    # ssl_certificate /etc/nginx/ssl/default.crt;
+    # ssl_certificate_key /etc/nginx/ssl/default.key;
+
+    server_name bitrix.test;
+    root /var/www/bitrix;
+    index index.php index.html index.htm;
+
+    location / {
+        try_files $uri $uri/ @bitrix;
+    }
+
+    location ~ \.php$ {
+        try_files $uri @bitrix;
+        fastcgi_pass php-fpm-5.6:9000;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location @bitrix {
+        fastcgi_pass php-fpm-5.6:9000;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/bitrix/urlrewrite.php;
+    }
+
+    location ~* ^/(upload|bitrix/images|bitrix/tmp) {
+        try_files $uri @prod;
+        expires 30d;
+    }
+
+    location @prod {
+        resolver 8.8.8.8;
+        proxy_pass https://example.com$uri;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/letsencrypt/;
+        log_not_found off;
+    }
+
+    error_log /var/log/nginx/app_error.log;
+    access_log /var/log/nginx/app_access.log;
+}
