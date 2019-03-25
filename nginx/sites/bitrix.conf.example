@@ -19,13 +19,13 @@ server {
 
     location ~ \.php$ {
         try_files $uri @bitrix;
-        fastcgi_pass php-fpm-5.6:9000;
+        fastcgi_pass php-upstream;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
 
     location @bitrix {
-        fastcgi_pass php-fpm-5.6:9000;
+        fastcgi_pass php-upstream;
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $document_root/bitrix/urlrewrite.php;
     }
