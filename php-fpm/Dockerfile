@@ -326,9 +326,29 @@ RUN if [ ${INSTALL_MEMCACHED} = true ]; then \
 # PHP Memcache:
 ###########################################################################
 
-RUN if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-  pecl install memcache -y \
-  && docker-php-ext-enable memcache \
+ARG INSTALL_MEMCACHE=false
+
+RUN if [ ${INSTALL_MEMCACHE} = true ]; then \
+
+    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+        pecl install memcache -y \
+        && docker-php-ext-enable memcache; \
+    else \
+        apt-get update \
+        && apt-get install wget -y \
+        && mkdir -p /root/addons/php/extensions \
+        && cd /root/addons/php/extensions \
+        && wget https://github.com/websupport-sk/pecl-memcache/archive/NON_BLOCKING_IO_php7.zip \
+        && unzip NON_BLOCKING_IO_php7.zip \
+        && cd pecl-memcache-NON_BLOCKING_IO_php7 \
+        && /usr/local/bin/phpize \
+        && ./configure --enable-memcache --with-php-config=/usr/local/bin/php-config \
+        && make \
+        && cp /root/addons/php/extensions/pecl-memcache-NON_BLOCKING_IO_php7/modules/memcache.so /usr/local/lib/php/extensions/no-debug-non-zts-20170718 \
+        && docker-php-ext-enable memcache \
+        && rm -r /root/addons; \
+    fi \
+
 ;fi
 
 ###########################################################################
