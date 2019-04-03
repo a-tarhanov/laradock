@@ -21,13 +21,21 @@ server {
         try_files $uri @bitrix;
         fastcgi_pass php-upstream;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PHP_VALUE "
+            mbstring.func_overload=2
+            mbstring.internal_encoding=utf-8
+        ";
         include fastcgi_params;
     }
 
     location @bitrix {
         fastcgi_pass php-upstream;
-        include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $document_root/bitrix/urlrewrite.php;
+        fastcgi_param PHP_VALUE "
+            mbstring.func_overload=2
+            mbstring.internal_encoding=utf-8
+        ";
+        include fastcgi_params;
     }
 
     location ~* ^/(upload|bitrix/images|bitrix/tmp) {
