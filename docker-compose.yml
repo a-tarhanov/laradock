@@ -59,46 +59,6 @@ services:
     links:
       - docker-in-docker
 
-  workspace-5.6:
-    build:
-      context: ./workspace
-      args:
-        - LARADOCK_PHP_VERSION=5.6
-        - INSTALL_XDEBUG=${WORKSPACE_INSTALL_XDEBUG}
-        - INSTALL_PHPREDIS=${WORKSPACE_INSTALL_PHPREDIS}
-        - INSTALL_NODE=${WORKSPACE_INSTALL_NODE}
-        - NPM_REGISTRY=${WORKSPACE_NPM_REGISTRY}
-        - INSTALL_YARN=${WORKSPACE_INSTALL_YARN}
-        - INSTALL_NPM_GULP=${WORKSPACE_INSTALL_NPM_GULP}
-        - INSTALL_NPM_VUE_CLI=${WORKSPACE_INSTALL_NPM_VUE_CLI}
-        - COMPOSER_GLOBAL_INSTALL=${WORKSPACE_COMPOSER_GLOBAL_INSTALL}
-        - COMPOSER_AUTH=${WORKSPACE_COMPOSER_AUTH}
-        - COMPOSER_REPO_PACKAGIST=${WORKSPACE_COMPOSER_REPO_PACKAGIST}
-        - INSTALL_WORKSPACE_SSH=${WORKSPACE_INSTALL_WORKSPACE_SSH}
-        - INSTALL_LARAVEL_INSTALLER=${WORKSPACE_INSTALL_LARAVEL_INSTALLER}
-        - INSTALL_IMAGE_OPTIMIZERS=${WORKSPACE_INSTALL_IMAGE_OPTIMIZERS}
-        - INSTALL_IMAGEMAGICK=${WORKSPACE_INSTALL_IMAGEMAGICK}
-        - PUID=${WORKSPACE_PUID}
-        - PGID=${WORKSPACE_PGID}
-        - NODE_VERSION=${WORKSPACE_NODE_VERSION}
-        - YARN_VERSION=${WORKSPACE_YARN_VERSION}
-        - TZ=${WORKSPACE_TIMEZONE}
-    volumes:
-      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-    extra_hosts:
-      - "dockerhost:${DOCKER_HOST_IP}"
-    ports:
-      - "${WORKSPACE_SSH_PORT_ALT}:22"
-    tty: true
-    environment:
-      - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
-      - DOCKER_HOST=tcp://docker-in-docker:2375
-    networks:
-      - frontend
-      - backend
-    links:
-      - docker-in-docker
-
   php-fpm:
     build:
       context: ./php-fpm
@@ -135,41 +95,6 @@ services:
     links:
       - docker-in-docker
 
-  php-fpm-5.6:
-    build:
-      context: ./php-fpm
-      args:
-        - LARADOCK_PHP_VERSION=5.6
-        - INSTALL_XDEBUG=${PHP_FPM_INSTALL_XDEBUG}
-        - INSTALL_BCMATH=${PHP_FPM_INSTALL_BCMATH}
-        - INSTALL_MEMCACHED=${PHP_FPM_INSTALL_MEMCACHED}
-        - INSTALL_OPCACHE=${PHP_FPM_INSTALL_OPCACHE}
-        - INSTALL_MYSQLI=${PHP_FPM_INSTALL_MYSQLI}
-        - INSTALL_INTL=${PHP_FPM_INSTALL_INTL}
-        - INSTALL_IMAGE_OPTIMIZERS=${PHP_FPM_INSTALL_IMAGE_OPTIMIZERS}
-        - INSTALL_IMAGEMAGICK=${PHP_FPM_INSTALL_IMAGEMAGICK}
-        - INSTALL_ADDITIONAL_LOCALES=${PHP_FPM_INSTALL_ADDITIONAL_LOCALES}
-        - ADDITIONAL_LOCALES=${PHP_FPM_ADDITIONAL_LOCALES}
-        - INSTALL_MEMCACHE=${PHP_FPM_INSTALL_MEMCACHE}
-        - INSTALL_MSMTP=${PHP_FPM_INSTALL_MSMTP}
-        - INSTALL_WKHTMLTOPDF=${PHP_FPM_INSTALL_WKHTMLTOPDF}
-    volumes:
-      - ./php-fpm/php5.6.ini:/usr/local/etc/php/php.ini
-      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-    expose:
-      - "9000"
-    extra_hosts:
-      - "dockerhost:${DOCKER_HOST_IP}"
-    environment:
-      - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
-      - DOCKER_HOST=tcp://docker-in-docker:2375
-    depends_on:
-      - workspace-5.6
-    networks:
-      - backend
-    links:
-      - docker-in-docker
-
   nginx:
     build:
       context: ./nginx
@@ -186,7 +111,6 @@ services:
       - "${NGINX_HOST_HTTPS_PORT}:443"
     depends_on:
       - php-fpm
-      - php-fpm-5.6
     networks:
       - frontend
       - backend
@@ -228,7 +152,6 @@ services:
       - "${MEMCACHED_HOST_PORT}:11211"
     depends_on:
       - php-fpm
-      - php-fpm-5.6
     networks:
       - backend
 

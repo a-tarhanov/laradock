@@ -394,6 +394,8 @@ USER laradock
 # PYTHON:
 ###########################################################################
 
+USER root
+
 ARG INSTALL_PYTHON=false
 
 RUN if [ ${INSTALL_PYTHON} = true ]; then \
