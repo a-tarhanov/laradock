@@ -112,21 +112,10 @@ ARG INSTALL_MEMCACHED=false
 RUN if [ ${INSTALL_MEMCACHED} = true ]; then \
     # Install the php memcached extension
     if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-      curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/2.2.0.tar.gz"; \
+      pecl install memcached-2.2.0; \
     else \
-      curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/master.tar.gz"; \
+      pecl install memcached-3.1.3; \
     fi \
-    && mkdir -p memcached \
-    && tar -C memcached -zxvf /tmp/memcached.tar.gz --strip 1 \
-    && ( \
-        cd memcached \
-        && phpize \
-        && ./configure \
-        && make -j$(nproc) \
-        && make install \
-    ) \
-    && rm -r memcached \
-    && rm /tmp/memcached.tar.gz \
     && docker-php-ext-enable memcached \
 ;fi
 
@@ -206,35 +195,6 @@ RUN if [ ${INSTALL_ADDITIONAL_LOCALES} = true ]; then \
     && temp="${temp#\"}" \
     && for i in ${temp}; do sed -i "/$i/s/^#//g" /etc/locale.gen; done \
     && locale-gen \
-;fi
-
-###########################################################################
-# PHP Memcache:
-###########################################################################
-
-ARG INSTALL_MEMCACHE=false
-
-RUN if [ ${INSTALL_MEMCACHE} = true ]; then \
-
-    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
-        pecl install memcache -y \
-        && docker-php-ext-enable memcache; \
-    else \
-        apt-get update \
-        && apt-get install wget -y \
-        && mkdir -p /root/addons/php/extensions \
-        && cd /root/addons/php/extensions \
-        && wget https://github.com/websupport-sk/pecl-memcache/archive/NON_BLOCKING_IO_php7.zip \
-        && unzip NON_BLOCKING_IO_php7.zip \
-        && cd pecl-memcache-NON_BLOCKING_IO_php7 \
-        && /usr/local/bin/phpize \
-        && ./configure --enable-memcache --with-php-config=/usr/local/bin/php-config \
-        && make \
-        && cp /root/addons/php/extensions/pecl-memcache-NON_BLOCKING_IO_php7/modules/memcache.so /usr/local/lib/php/extensions/no-debug-non-zts-20170718 \
-        && docker-php-ext-enable memcache \
-        && rm -r /root/addons; \
-    fi \
-
 ;fi
 
 ###########################################################################
