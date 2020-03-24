@@ -13,9 +13,7 @@
 #
 
 ARG LARADOCK_PHP_VERSION
-
-# FROM laradock/php-fpm:2.2-${LARADOCK_PHP_VERSION}
-FROM letsdockerize/laradock-php-fpm:2.4-${LARADOCK_PHP_VERSION}
+FROM laradock/php-fpm:2.7-${LARADOCK_PHP_VERSION}
 
 LABEL maintainer="Mahmoud Zalt <mahmoud@zalt.me>"
 
@@ -67,7 +65,11 @@ RUN if [ ${INSTALL_XDEBUG} = true ]; then \
   if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
     pecl install xdebug-2.5.5; \
   else \
-    pecl install xdebug; \
+    if [ $(php -r "echo PHP_MINOR_VERSION;") = "0" ]; then \
+      pecl install xdebug-2.9.0; \
+    else \
+      pecl install xdebug; \
+    fi \
   fi && \
   docker-php-ext-enable xdebug \
 ;fi
@@ -87,9 +89,13 @@ ARG INSTALL_PHPREDIS=false
 
 RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
     # Install Php Redis Extension
-    printf "\n" | pecl install -o -f redis \
-    &&  rm -rf /tmp/pear \
-    &&  docker-php-ext-enable redis \
+    if [ $(php -r "echo PHP_MAJOR_VERSION;") = "5" ]; then \
+      pecl install -o -f redis-4.3.0; \
+    else \
+      pecl install -o -f redis; \
+    fi \
+    && rm -rf /tmp/pear \
+    && docker-php-ext-enable redis \
 ;fi
 
 ###########################################################################
@@ -221,15 +227,15 @@ USER root
 ARG INSTALL_WKHTMLTOPDF=false
 
 RUN if [ ${INSTALL_WKHTMLTOPDF} = true ]; then \
-    apt-get -yqq update && \
-    apt-get -yqq install wkhtmltopdf && \
-    apt-get -yqq install wget && \
-    cd ~ && \
-    wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz && \
-    tar -xf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz && \
-    mv wkhtmltox/bin/* /usr/bin && \
-    rm wkhtmltox-0.12.4_linux-generic-amd64.tar.xz && \
-    rm -r wkhtmltox \
+    apt-get install -y \
+    libxrender1 \
+    libfontconfig1 \
+    libx11-dev \
+    libjpeg62 \
+    libxtst6 \
+    wget \
+    && wget https://github.com/h4cc/wkhtmltopdf-amd64/blob/master/bin/wkhtmltopdf-amd64?raw=true -O /usr/local/bin/wkhtmltopdf \
+    && chmod +x /usr/local/bin/wkhtmltopdf \
 ;fi
 
 ###########################################################################
@@ -253,7 +259,14 @@ RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     rm /var/log/lastlog /var/log/faillog
 
-RUN usermod -u 1000 www-data
+# Configure non-root user.
+ARG PUID=1000
+ENV PUID ${PUID}
+ARG PGID=1000
+ENV PGID ${PGID}
+
+RUN groupmod -o -g ${PGID} www-data && \
+    usermod -o -u ${PUID} -g www-data www-data
 
 WORKDIR /var/www
 

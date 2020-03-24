@@ -13,9 +13,7 @@
 #
 
 ARG LARADOCK_PHP_VERSION
-
-# FROM laradock/workspace:2.2-${LARADOCK_PHP_VERSION}
-FROM letsdockerize/laradock-workspace:2.4-${LARADOCK_PHP_VERSION}
+FROM laradock/workspace:2.6.1-${LARADOCK_PHP_VERSION}
 
 LABEL maintainer="Mahmoud Zalt <mahmoud@zalt.me>"
 
@@ -118,9 +116,6 @@ USER root
 # Add the composer.json
 COPY ./composer.json /home/laradock/.composer/composer.json
 
-# Add the auth.json for magento 2 credentials
-COPY ./auth.json /home/laradock/.composer/auth.json
-
 # Make sure that ~/.composer belongs to laradock
 RUN chown -R laradock:laradock /home/laradock/.composer
 
@@ -137,15 +132,6 @@ ENV COMPOSER_GLOBAL_INSTALL ${COMPOSER_GLOBAL_INSTALL}
 RUN if [ ${COMPOSER_GLOBAL_INSTALL} = true ]; then \
     # run the install
     composer global install \
-;fi
-
-# Check if auth file is disabled
-ARG COMPOSER_AUTH=false
-ENV COMPOSER_AUTH ${COMPOSER_AUTH}
-
-RUN if [ ${COMPOSER_AUTH} = false ]; then \
-    # remove the file
-    rm /home/laradock/.composer/auth.json \
 ;fi
 
 ARG COMPOSER_REPO_PACKAGIST
@@ -228,6 +214,7 @@ RUN if [ ${INSTALL_WORKSPACE_SSH} = true ]; then \
 ARG INSTALL_PHPREDIS=false
 
 RUN if [ ${INSTALL_PHPREDIS} = true ]; then \
+    apt-get update -yqq && \
     apt-get install -yqq php-redis \
 ;fi
 
@@ -273,13 +260,13 @@ RUN if [ ${INSTALL_NODE} = true ]; then \
         && ln -s `npm bin --global` /home/laradock/.node-bin \
 ;fi
 
-# Wouldn't execute when added to the RUN statement in the above block
-# Source NVM when loading bash since ~/.profile isn't loaded on non-login shell
-RUN if [ ${INSTALL_NODE} = true ]; then \
-    echo "" >> ~/.bashrc && \
-    echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc \
-;fi
+  # Wouldn't execute when added to the RUN statement in the above block
+  # Source NVM when loading bash since ~/.profile isn't loaded on non-login shell
+  RUN if [ ${INSTALL_NODE} = true ]; then \
+      echo "" >> ~/.bashrc && \
+      echo 'export NVM_DIR="$HOME/.nvm"' >> ~/.bashrc && \
+      echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm' >> ~/.bashrc \
+  ;fi
 
 # Add NVM binaries to root's .bashrc
 USER root

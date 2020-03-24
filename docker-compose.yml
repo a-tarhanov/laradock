@@ -31,7 +31,6 @@ services:
         - INSTALL_NPM_GULP=${WORKSPACE_INSTALL_NPM_GULP}
         - INSTALL_NPM_VUE_CLI=${WORKSPACE_INSTALL_NPM_VUE_CLI}
         - COMPOSER_GLOBAL_INSTALL=${WORKSPACE_COMPOSER_GLOBAL_INSTALL}
-        - COMPOSER_AUTH=${WORKSPACE_COMPOSER_AUTH}
         - COMPOSER_REPO_PACKAGIST=${WORKSPACE_COMPOSER_REPO_PACKAGIST}
         - INSTALL_WORKSPACE_SSH=${WORKSPACE_INSTALL_WORKSPACE_SSH}
         - INSTALL_LARAVEL_INSTALLER=${WORKSPACE_INSTALL_LARAVEL_INSTALLER}
@@ -52,12 +51,9 @@ services:
     tty: true
     environment:
       - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
-      - DOCKER_HOST=tcp://docker-in-docker:2375
     networks:
       - frontend
       - backend
-    links:
-      - docker-in-docker
 
   php-fpm:
     build:
@@ -86,13 +82,10 @@ services:
       - "dockerhost:${DOCKER_HOST_IP}"
     environment:
       - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
-      - DOCKER_HOST=tcp://docker-in-docker:2375
     depends_on:
       - workspace
     networks:
       - backend
-    links:
-      - docker-in-docker
 
   php-fpm-5.6:
     build:
@@ -120,13 +113,10 @@ services:
       - "dockerhost:${DOCKER_HOST_IP}"
     environment:
       - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
-      - DOCKER_HOST=tcp://docker-in-docker:2375
     depends_on:
       - workspace
     networks:
       - backend
-    links:
-      - docker-in-docker
 
   nginx:
     build:
@@ -144,6 +134,7 @@ services:
       - "${NGINX_HOST_HTTPS_PORT}:443"
     depends_on:
       - php-fpm
+      - php-fpm-5.6
     networks:
       - frontend
       - backend
@@ -185,6 +176,7 @@ services:
       - "${MEMCACHED_HOST_PORT}:11211"
     depends_on:
       - php-fpm
+      - php-fpm-5.6
     networks:
       - backend
 
@@ -201,16 +193,6 @@ services:
       - "${PMA_DB_ENGINE}"
     networks:
       - frontend
-      - backend
-
-  docker-in-docker:
-    image: docker:dind
-    privileged: true
-    volumes:
-      - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
-    expose:
-      - 2375
-    networks:
       - backend
 
   maildev:

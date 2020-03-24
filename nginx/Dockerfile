@@ -1,4 +1,4 @@
-FROM nginx:1.15.12-alpine
+FROM nginx:alpine
 
 LABEL maintainer="Mahmoud Zalt <mahmoud@zalt.me>"
 
@@ -9,6 +9,8 @@ RUN apk update \
     && apk --update add logrotate \
     && apk add --no-cache openssl \
     && apk add --no-cache bash
+
+RUN apk add --no-cache curl
 
 RUN set -x ; \
     addgroup -g 82 -S www-data ; \
