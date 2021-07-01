@@ -40,10 +40,10 @@ RUN set -xe; \
     apt-get update -yqq && \
     pecl channel-update pecl.php.net && \
     groupadd -g ${PGID} laradock && \
-    useradd -u ${PUID} -g laradock -m laradock -G docker_env && \
+    useradd -l -u ${PUID} -g laradock -m laradock -G docker_env && \
     usermod -p "*" laradock -s /bin/bash && \
     apt-get install -yqq \
-      apt-utils \
+      apt-utils && \
       #
       #--------------------------------------------------------------------------
       # Mandatory Software's Installation
@@ -55,11 +55,11 @@ RUN set -xe; \
       # base image (https://github.com/Laradock/workspace).
       #
       # next lines are here becase there is no auto build on dockerhub see https://github.com/laradock/laradock/pull/1903#issuecomment-463142846
-      libzip-dev zip unzip \
+      # libzip-dev zip unzip \
       # Install the zip extension
-      php${LARADOCK_PHP_VERSION}-zip \
+      # php${LARADOCK_PHP_VERSION}-zip \
       # nasm
-      nasm && \
+      # nasm && \
       php -m | grep -q 'zip'
 
 #
